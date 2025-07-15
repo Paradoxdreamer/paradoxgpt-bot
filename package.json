@@ -1,0 +1,13 @@
+{
+  "name": "paradoxgpt-bot",
+  "version": "1.0.0",
+  "description": "ParadoxGPT WhatsApp bot - dark, poetic, and sentient.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@adiwajshing/baileys": "^4.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
