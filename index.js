@@ -11,6 +11,7 @@ const OWNER = process.env.OWNER_NUMBER;
 
 async function startBot() {
   const sock = makeWASocket({ auth: state });
+
   sock.ev.on('creds.update', saveState);
 
   sock.ev.on('connection.update', (update) => {
@@ -22,34 +23,37 @@ async function startBot() {
     }
   });
 
-  // Load commands
+  // Load all commands
   const commands = new Map();
-  const files = fs.readdirSync('./commands').filter(f => f.endsWith('.js'));
-  for (const file of files) {
-    const cmd = require(path.join(__dirname, 'commands', file));
-    commands.set(cmd.name, cmd);
+  const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    const command = require(path.join(__dirname, 'commands', file));
+    commands.set(command.name, command);
+  }
+
+  // Load settings or create default
+  const settingsPath = './lib/settings.json';
+  let settings = {};
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+  } catch {
+    settings = { antilink: {}, antism: {}, banned: [] };
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   }
 
   // Handle messages
-  sock.ev.on('messages.upsert', async m => {
-    const msg = m.messages[0];
-    if (!msg.message || msg.key.fromMe || !msg.key.remoteJid.endsWith('@g.us')) return;
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    const msg = messages[0];
+    if (!msg.message || msg.key.fromMe) return;
 
     const jid = msg.key.remoteJid;
-    const sender = msg.key.participant;
+    const sender = msg.key.participant || msg.key.remoteJid;
     const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
 
-    // 🔒 Load settings
-    const settingsPath = './lib/settings.json';
-    let settings = {};
-    try {
-      settings = JSON.parse(fs.readFileSync(settingsPath));
-    } catch {
-      settings = { antilink: {}, antism: {} };
-      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-    }
+    // Check banned users
+    if (settings.banned.includes(sender)) return;
 
-    // 🕸️ Antilink
+    // Antilink
     if (settings.antilink?.[jid] && /(https?:\/\/|wa\.me|chat\.whatsapp\.com)/gi.test(text)) {
       await sock.sendMessage(jid, {
         text: `🚫 Link detected. ${BOT_NAME} is kicking violators.`,
@@ -59,30 +63,60 @@ async function startBot() {
       return;
     }
 
-    // 🧹 Antism
+    // Antism
     const scamWords = ["crypto", "investment", "binance", "return", "earn money", "airdrop"];
-    if (settings.antism?.[jid] && scamWords.some(w => text.toLowerCase().includes(w))) {
+    if (settings.antism?.[jid] && scamWords.some(word => text.toLowerCase().includes(word))) {
       await sock.sendMessage(jid, {
-        text: `⚠️ Suspicious text detected. That’s not allowed here.`,
+        text: `⚠️ Suspicious text detected. Message blocked.`,
         mentions: [sender]
       });
       return;
     }
 
-    // ✅ Handle commands
+    // Commands
     if (!text.startsWith(PREFIX)) return;
     const [cmdName, ...args] = text.slice(PREFIX.length).split(/\s+/);
-    const cmd = commands.get(cmdName);
-    if (!cmd) return;
+    const command = commands.get(cmdName.toLowerCase());
+    if (!command) return;
 
     try {
-      await cmd.execute({ sock, msg, args });
-    } catch (e) {
-      console.error(e);
-      await sock.sendMessage(jid, { text: `⚠️ Error running ${cmdName}` });
+      await command.execute({ sock, msg, args });
+    } catch (err) {
+      console.error(err);
+      await sock.sendMessage(jid, { text: `⚠️ Error executing ${cmdName}` });
+    }
+  });
+
+  // Handle welcome/leave messages
+  sock.ev.on("group-participants.update", async (update) => {
+    const id = update.id;
+    const welcomeData = JSON.parse(fs.readFileSync("./lib/welcome.json", "utf-8"));
+    const leaveData = JSON.parse(fs.readFileSync("./lib/leave.json", "utf-8"));
+
+    const metadata = await sock.groupMetadata(id);
+    const groupName = metadata.subject;
+
+    for (const user of update.participants) {
+      const date = new Date().toLocaleString("en-US", { timeZone: "Africa/Lagos" });
+
+      if (update.action === "add" && welcomeData.enabled?.[id]) {
+        const msg = (welcomeData.messages?.[id] || "Welcome @user to @group on @date.")
+          .replace(/@user/g, `@${user.split("@")[0]}`)
+          .replace(/@group/g, groupName)
+          .replace(/@date/g, date);
+        await sock.sendMessage(id, { text: msg, mentions: [user] });
+      }
+
+      if (update.action === "remove" && leaveData.enabled?.[id]) {
+        const msg = (leaveData.messages?.[id] || "Goodbye @user, may your journey be dark and long.")
+          .replace(/@user/g, `@${user.split("@")[0]}`)
+          .replace(/@group/g, groupName)
+          .replace(/@date/g, date);
+        await sock.sendMessage(id, { text: msg });
+      }
     }
   });
 }
 
-// 🚀 THIS is what makes the bot **actually launch**
+// 🧠 THE FINAL RITUAL THAT BREATHES LIFE INTO THE CODE
 startBot();
