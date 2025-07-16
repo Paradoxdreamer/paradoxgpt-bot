@@ -1,7 +1,7 @@
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
+const { default: makeWASocket, useSingleFileAuthState } = require('@adiwajshing/baileys');
 const qrcode = require('qrcode-terminal');
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const { state, saveState } = useSingleFileAuthState('./auth_info.json');
 
@@ -23,7 +23,7 @@ async function startBot() {
     }
   });
 
-  // Load all commands
+  // Load commands
   const commands = new Map();
   const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
   for (const file of commandFiles) {
@@ -31,7 +31,7 @@ async function startBot() {
     commands.set(command.name, command);
   }
 
-  // Load settings or create default
+  // Settings
   const settingsPath = './lib/settings.json';
   let settings = {};
   try {
@@ -41,7 +41,7 @@ async function startBot() {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   }
 
-  // Handle messages
+  // Message handler
   sock.ev.on('messages.upsert', async ({ messages }) => {
     const msg = messages[0];
     if (!msg.message || msg.key.fromMe) return;
@@ -50,10 +50,10 @@ async function startBot() {
     const sender = msg.key.participant || msg.key.remoteJid;
     const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
 
-    // Check banned users
+    // 🔒 Banned users
     if (settings.banned.includes(sender)) return;
 
-    // Antilink
+    // 🚫 Antilink
     if (settings.antilink?.[jid] && /(https?:\/\/|wa\.me|chat\.whatsapp\.com)/gi.test(text)) {
       await sock.sendMessage(jid, {
         text: `🚫 Link detected. ${BOT_NAME} is kicking violators.`,
@@ -63,7 +63,7 @@ async function startBot() {
       return;
     }
 
-    // Antism
+    // ⚠️ Anti-scam
     const scamWords = ["crypto", "investment", "binance", "return", "earn money", "airdrop"];
     if (settings.antism?.[jid] && scamWords.some(word => text.toLowerCase().includes(word))) {
       await sock.sendMessage(jid, {
@@ -73,7 +73,7 @@ async function startBot() {
       return;
     }
 
-    // Commands
+    // 🧠 Execute commands
     if (!text.startsWith(PREFIX)) return;
     const [cmdName, ...args] = text.slice(PREFIX.length).split(/\s+/);
     const command = commands.get(cmdName.toLowerCase());
@@ -87,7 +87,7 @@ async function startBot() {
     }
   });
 
-  // Handle welcome/leave messages
+  // Group welcome/leave handler
   sock.ev.on("group-participants.update", async (update) => {
     const id = update.id;
     const welcomeData = JSON.parse(fs.readFileSync("./lib/welcome.json", "utf-8"));
@@ -118,5 +118,5 @@ async function startBot() {
   });
 }
 
-// 🧠 THE FINAL RITUAL THAT BREATHES LIFE INTO THE CODE
+// 🔥 RISE, PARADOXGPT!
 startBot();
