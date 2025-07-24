@@ -1,6 +1,6 @@
-const { default: makeWASocket, usemultiFileAuthState } = require('@adiwajshing/baileys'); const qrcode = require('qrcode-terminal'); const fs = require("fs"); const path = require("path");
+const { default: makeWASocket, usemultifileAuthState } = require('@adiwajshing/baileys'); const qrcode = require('qrcode-terminal'); const fs = require("fs"); const path = require("path");
 
-const { state, saveState } = useSingleFileAuthState('./auth_info.json');
+const { state, saveState } = usemultiFileAuthState('./auth_info.json');
 
 const BOT_NAME = process.env.BOT_NAME || 'ParadoxGPT'; const PREFIX = process.env.PREFIX || '.'; const OWNER = process.env.OWNER_NUMBER; const BOT_IMAGE_URL = process.env.BOT_IMAGE_URL || "https://i.imgur.com/YOUR_IMAGE_ID.jpg";
 
