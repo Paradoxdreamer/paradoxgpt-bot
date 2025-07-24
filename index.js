@@ -1,4 +1,4 @@
-const { default: makeWASocket, useSingleFileAuthState } = require('@adiwajshing/baileys'); const qrcode = require('qrcode-terminal'); const fs = require("fs"); const path = require("path");
+const { default: makeWASocket, usemultiFileAuthState } = require('@adiwajshing/baileys'); const qrcode = require('qrcode-terminal'); const fs = require("fs"); const path = require("path");
 
 const { state, saveState } = useSingleFileAuthState('./auth_info.json');
 
