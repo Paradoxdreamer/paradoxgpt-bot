@@ -61,7 +61,7 @@ if (settings.antilink?.[jid] && /(https?:\/\/|www\.|wa\.me|chat\.whatsapp\.com)/
 const scamWords = ["crypto", "investment", "binance", "return", "earn money", "airdrop", "free money"];
 if (settings.antism?.[jid] && scamWords.some(word => text.toLowerCase().includes(word))) {
     await sock.sendMessage(jid, {
-        text: `⚠️ Suspicious text detected. Message blocked.`,
+        text: "⚠️ Suspicious text detected. Message blocked,",
         mentions: [sender]
     });
     return;
