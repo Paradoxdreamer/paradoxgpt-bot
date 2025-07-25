@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@adiwajshing/baileys": "^4.5.0",
+    "@adiwajshing/baileys": "^6.6.0",
     "qrcode-terminal": "^0.12.0"
   }
 }
