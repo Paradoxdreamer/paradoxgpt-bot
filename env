@@ -1,0 +1,5 @@
+BOT_NAME=Paradox-GPT
+OWNER_NAME=Allen
+OPENAI_API_KEY=AIzaSyAxFyQs8RipWGFO2bk5iLbGXK4_jq5ojIw
+SESSION_ID=paradoxsession
+PORT=3000
