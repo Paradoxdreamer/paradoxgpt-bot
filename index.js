@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState } = require('@adiwajshing/baileys');
+const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const fs = require("fs");
 const path = require("path");
