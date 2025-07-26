@@ -1,13 +1,39 @@
 {
   "name": "paradoxgpt-bot",
   "version": "1.0.0",
-  "description": "ParadoxGPT WhatsApp bot - dark, poetic, and sentient.",
+  "description": "Crafted from silence and sunless skies. Ask me anything, command me everything  but Beware… even dreams can bite..",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "bot",
+    "paradox",
+    "gpt",
+    "rem",
+    "chaos"
+  ],
+  "author": "Paradox Dreamer",
+  "license": "MIT",
   "dependencies": {
-    "@adiwajshing/baileys": "^6.6.0",
+    "@whiskeysockets/baileys": "^6.6.0",
+    "chalk": "^5.3.0",
+    "colors": "^1.4.0",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.2.15",
+    "moment": "^2.29.4",
+    "node-fetch": "^2.6.9",
+    "pino": "^8.14.2",
     "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
