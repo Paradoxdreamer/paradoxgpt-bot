@@ -2,13 +2,12 @@ const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysocket
 const qrcode = require('qrcode-terminal');
 const fs = require("fs");
 const path = require("path");
-
-const { state, saveCreds: saveState } = await useMultiFileAuthState('./auth_info');
+require("dotenv").config(); // Load .env config
 
 // ENV CONFIG
 const BOT_NAME = process.env.BOT_NAME || 'ParadoxGPT';
 const PREFIX = process.env.PREFIX || '.';
-const OWNER = process.env.OWNER_NUMBER || '2340000000000'; // fallback
+const OWNER = process.env.OWNER_NUMBER || '2340000000000';
 const BOT_IMAGE_URL = process.env.BOT_IMAGE_URL || "https://i.imgur.com/YOUR_IMAGE_ID.jpg";
 
 // Default settings
@@ -37,8 +36,10 @@ try {
     console.error("❌ Failed to load commands:", err);
 }
 
-// Bot Start
+// MAIN BOT FUNCTION
 async function startBot() {
+    const { state, saveCreds: saveState } = await useMultiFileAuthState('./auth_info');
+
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: true
@@ -57,21 +58,15 @@ async function startBot() {
         const event = require(path.join(eventsPath, file));
         const eventName = file.split('.')[0];
 
-        if (typeof event === "function") {
-            sock.ev.on(eventName, async (update) => {
-                try {
-                    await event(sock, update, {
-                        commands,
-                        settings,
-                        PREFIX,
-                        OWNER,
-                        BOT_NAME
-                    });
-                } catch (err) {
-                    console.error(`⚠️ Error in ${eventName} handler:`, err);
-                }
-            });
-            console.log(`🔌 Loaded event handler: ${eventName}`);
+        // If it's an event handler (like messages.upsert)
+        if (event?.name && typeof event.execute === "function") {
+            sock.ev.on(event.name, (data) => event.execute(data, sock));
+            console.log(`🔌 Loaded event handler: ${event.name}`);
+        }
+        // If it's structured like your custom event/geminiai.js (using 'run')
+        else if (typeof event.run === "function") {
+            sock.ev.on(event.event, (data) => event.run({ m: data, sock }));
+            console.log(`⚙️ Loaded alt event handler: ${file}`);
         }
     });
 
@@ -124,4 +119,5 @@ process.on('unhandledRejection', (err) => {
     console.error('⚠️ Unhandled Rejection:', err);
 });
 
+// Let's gooo
 startWithRetry();
