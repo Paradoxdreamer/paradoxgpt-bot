@@ -1,23 +1,35 @@
-module.exports = async (sock, m, { commands, PREFIX }) => {
+const { getAIResponse } = require("../lib/geminiAi");
+
+module.exports = async (sock, update, { commands, PREFIX }) => {
   try {
-    const msg = m.messages[0];
-    if (!msg.message || msg.key && msg.key.remoteJid === 'status@broadcast') return;
+    const m = update.messages[0];
+    if (!m.message || m.key.fromMe) return;
 
-    const type = Object.keys(msg.message)[0];
-    const content = msg.message[type];
-    const body = type === 'conversation' ? content :
-      type === 'extendedTextMessage' ? content.text : '';
+    const body =
+      m.message.conversation ||
+      m.message.extendedTextMessage?.text ||
+      "";
 
-    if (!body.startsWith(PREFIX)) return;
+    const sender = m.key.remoteJid;
 
-    const args = body.slice(PREFIX.length).trim().split(/ +/);
-    const cmdName = args.shift().toLowerCase();
-    const command = commands.get(cmdName);
+    if (body.startsWith(PREFIX)) {
+      const args = body.slice(PREFIX.length).trim().split(/ +/);
+      const cmdName = args.shift().toLowerCase();
+      const cmd = commands.get(cmdName);
 
-    if (!command) return;
-
-    await command.execute({ sock, m: msg, args });
+      if (cmd) {
+        await cmd.execute({ sock, m, args });
+      } else {
+        await sock.sendMessage(sender, { text: "Unknown command." });
+      }
+    } else {
+      // 💬 No prefix? Treat it as a convo, pass to AI.
+      const aiReply = await getAIResponse(body);
+      if (aiReply) {
+        await sock.sendMessage(sender, { text: aiReply });
+      }
+    }
   } catch (err) {
-    console.error("Message handler error:", err);
+    console.error("🧨 Error in messages.upsert.js:", err);
   }
 };
