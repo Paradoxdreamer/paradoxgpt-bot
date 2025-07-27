@@ -7,7 +7,7 @@ require("dotenv").config(); // Load .env config
 // ENV CONFIG
 const BOT_NAME = process.env.BOT_NAME || 'ParadoxGPT';
 const PREFIX = process.env.PREFIX || '.';
-const OWNER = process.env.OWNER_NUMBER || '2340000000000';
+const OWNER = process.env.OWNER_NUMBER || '+221769412725';
 const BOT_IMAGE_URL = process.env.BOT_IMAGE_URL || "https://files.catbox.moe/ot5txl.jpg";
 // Default settings
 const settingsPath = './lib/settings.json';
