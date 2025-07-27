@@ -1,4 +1,4 @@
-const { getAIResponse } = require("../event/geminiAi");
+const { getAIResponse } = require("./events/geminiAi");
 
 module.exports = async (sock, update, { commands, PREFIX }) => {
   try {
