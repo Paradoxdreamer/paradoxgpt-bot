@@ -9,6 +9,7 @@ const BOT_NAME = process.env.BOT_NAME || 'ParadoxGPT';
 const PREFIX = process.env.PREFIX || '.';
 const OWNER = process.env.OWNER_NUMBER || '+221769412725';
 const BOT_IMAGE_URL = process.env.BOT_IMAGE_URL || "https://files.catbox.moe/ot5txl.jpg";
+
 // Default settings
 const settingsPath = './lib/settings.json';
 let settings = { antilink: {}, antism: {}, banned: [] };
@@ -57,15 +58,37 @@ async function startBot() {
         const event = require(path.join(eventsPath, file));
         const eventName = file.split('.')[0];
 
-        // If it's an event handler (like messages.upsert)
         if (event?.name && typeof event.execute === "function") {
             sock.ev.on(event.name, (data) => event.execute(data, sock));
             console.log(`🔌 Loaded event handler: ${event.name}`);
-        }
-        // If it's structured like your custom event/geminiai.js (using 'run')
-        else if (typeof event.run === "function") {
+        } else if (typeof event.run === "function") {
             sock.ev.on(event.event, (data) => event.run({ m: data, sock }));
             console.log(`⚙️ Loaded alt event handler: ${file}`);
+        }
+    });
+
+    // ✅ MESSAGE HANDLER
+    sock.ev.on("messages.upsert", async ({ messages, type }) => {
+        const m = messages[0];
+        if (!m.message || m.key.fromMe) return;
+
+        const messageType = Object.keys(m.message)[0];
+        const body = m.message.conversation || m.message[messageType]?.text || "";
+
+        if (!body.startsWith(PREFIX)) return;
+
+        const args = body.slice(PREFIX.length).trim().split(/ +/);
+        const commandName = args.shift().toLowerCase();
+
+        const command = commands.get(commandName);
+        if (!command) return;
+
+        try {
+            await command.execute({ sock, m, args });
+            console.log(`✅ Executed command: ${commandName}`);
+        } catch (err) {
+            console.error(`❌ Error in command '${commandName}':`, err);
+            await sock.sendMessage(m.key.remoteJid, { text: `❌ Error running command '${commandName}'` });
         }
     });
 
