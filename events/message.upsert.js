@@ -1,4 +1,4 @@
-const { getAIResponse } = require("/events/geminiAi");
+const gemini = require('./geminiAi');
 
 module.exports = async (sock, update, { commands, PREFIX }) => {
   try {
@@ -23,8 +23,8 @@ module.exports = async (sock, update, { commands, PREFIX }) => {
         await sock.sendMessage(sender, { text: "Unknown command." });
       }
     } else {
-      // 💬 No prefix? Treat it as a convo, pass to AI.
-      const aiReply = await getAIResponse(body);
+      // 💬 No prefix? Treat it as convo, pass to Gemini AI
+      const aiReply = await gemini.getAIResponse(body);
       if (aiReply) {
         await sock.sendMessage(sender, { text: aiReply });
       }
