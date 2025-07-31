@@ -1,26 +1,29 @@
-const fs = require("fs");
-const path = "./lib/settings.json";
-
 module.exports = {
   name: "antilink",
-  async execute({ m, sock, args }) {
-    const id = m.key.remoteJid;
-    if (!id.endsWith("@g.us")) return;
+  description: "Auto-delete links in groups",
+  category: "moderation",
+  async execute(sock, m, { isGroup }) {
+    // No need to execute anything here — handled globally
+  },
+  async run(sock, m) {
+    // Empty because the logic is handled in upsert directly
+  },
+  monitor: async (sock, m) => {
+    try {
+      const msg = m.message?.conversation || m.message?.extendedTextMessage?.text || "";
+      const from = m.key.remoteJid;
 
-    const settings = JSON.parse(fs.readFileSync(path, "utf-8"));
-    if (!settings.antilink) settings.antilink = {};
+      // Don't act outside groups
+      if (!from.endsWith("@g.us")) return;
 
-    const arg = args[0];
-    if (arg === "on") {
-      settings.antilink[id] = true;
-      await sock.sendMessage(id, { text: `🛡️ Antilink enabled.` });
-    } else if (arg === "off") {
-      settings.antilink[id] = false;
-      await sock.sendMessage(id, { text: `❌ Antilink disabled.` });
-    } else {
-      await sock.sendMessage(id, { text: `Usage: .antilink on/off` });
+      // Detect links with regex
+      const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+      if (linkRegex.test(msg)) {
+        await sock.sendMessage(from, { text: `🚫 Link detected and deleted by ParadoxGPT` }, { quoted: m });
+        await sock.sendMessage(from, { delete: m.key });
+      }
+    } catch (e) {
+      console.error("❌ AntiLink Error:", e);
     }
-
-    fs.writeFileSync(path, JSON.stringify(settings, null, 2));
-  }
+  },
 };
