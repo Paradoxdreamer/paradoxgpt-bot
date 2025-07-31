@@ -1,7 +1,7 @@
 {
   "name": "paradoxgpt-bot",
   "version": "1.0.0",
-  "description": "Crafted from silence and sunless skies. Ask me anything, command me everything  but Beware… even dreams can bite..",
+  "description": "🖤 Crafted from silence and sunless skies. Ask me anything, command me everything... but beware — even dreams bite.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -14,9 +14,10 @@
     "paradox",
     "gpt",
     "rem",
-    "chaos"
+    "chaos",
+    "dreamer"
   ],
-  "author": "Paradox Dreamer",
+  "author": "🕷️ Paradox Dreamer",
   "license": "MIT",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0",
